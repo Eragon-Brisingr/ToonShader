@@ -195,11 +195,19 @@ void SetGBufferForShadingModel(
 	#endif
 	}
 #endif
+// 支持 MaterialExpressionCustomOutput 形式
 #if NUM_MATERIAL_OUTPUTS_GETTOONSHADING
     else if (ShadingModel == SHADINGMODELID_STYLIZED_SHADOW)
     {
-        GBuffer.CustomData.x = saturate( GetToonShading0(MaterialParameters) );  // SpecularRange  
-        GBuffer.CustomData.y = saturate( GetToonShading1(MaterialParameters) );  // Offstet
+        GBuffer.CustomData.x = saturate( GetToonShading0(MaterialParameters) );  // SpecularRange
+        GBuffer.CustomData.y = saturate( GetToonShading1(MaterialParameters) );  // Offset
+    }
+// 支持 ShadingModelId 形式
+#elif SHADINGMODELID_STYLIZED_SHADOW
+	else if (ShadingModel == SHADINGMODELID_STYLIZED_SHADOW)
+    {
+        GBuffer.CustomData.x = saturate( GetMaterialCustomData0(MaterialParameters) );  // SpecularRange
+        GBuffer.CustomData.y = saturate( GetMaterialCustomData1(MaterialParameters) );  // Offset
     }
 #endif
 }

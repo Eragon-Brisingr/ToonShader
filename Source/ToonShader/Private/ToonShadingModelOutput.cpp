@@ -77,4 +77,42 @@ FExpressionInput* UToonShadingModelOutput::GetInput(int32 InputIndex)
 }
 #endif
 
+//#if WITH_EDITOR
+//UToonMaterialShadingModelExpression::UToonMaterialShadingModelExpression(const FObjectInitializer& ObjectInitializer)
+//{
+//#if WITH_EDITORONLY_DATA
+//
+//	MenuCategories.Add(LOCTEXT("Shading Model", "Shading Model"));
+//
+//	// bShaderInputData = true;
+//	bShowOutputNameOnPin = true;
+//
+//	Outputs.Reset();
+//	Outputs.Add(FExpressionOutput(TEXT("")));
+//#endif
+//}
+//
+//int32 UToonMaterialShadingModelExpression::Compile(FMaterialCompiler* Compiler, int32 OutputIndex)
+//{
+//	return Compiler->ShadingModel(static_cast<EMaterialShadingModel>(ToonShadingModel));
+//}
+//
+//uint32 UToonMaterialShadingModelExpression::GetOutputType(int32 OutputIndex)
+//{
+//	return MCT_ShadingModel;
+//}
+//
+//void UToonMaterialShadingModelExpression::GetCaption(TArray<FString>& OutCaptions) const
+//{
+//	const UEnum* ShadingModelEnum = StaticEnum<EToonMaterialShadingModel>();
+//	check(ShadingModelEnum);
+//
+//	const FString ShadingModelDisplayName = ShadingModelEnum->GetDisplayNameTextByValue(static_cast<uint8>(ToonShadingModel)).ToString();
+//
+//	// Add as a stack, last caption to be added will be the main (bold) caption
+//	OutCaptions.Add(ShadingModelDisplayName);
+//	OutCaptions.Add(TEXT("Toon Shading Model"));
+//}
+//#endif
+
 #undef LOCTEXT_NAMESPACE
