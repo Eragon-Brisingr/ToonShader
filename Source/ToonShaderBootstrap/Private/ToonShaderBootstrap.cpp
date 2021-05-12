@@ -53,7 +53,8 @@ void FToonShaderBootstrapModule::ShutdownModule()
 		const FString PluginShaderOverrideDir = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("ToonShader"))->GetBaseDir(), TEXT("ShadersOverride"));
 		const FString ShaderDir = FPaths::Combine(FPaths::EngineDir(), TEXT("Shaders"));
 		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-		PlatformFile.DeleteDirectory(*FPaths::Combine(ShaderDir, TEXT("Private"), TEXT("Toon")));
+
+		PlatformFile.DeleteDirectoryRecursively(*FPaths::Combine(ShaderDir, TEXT("Private"), TEXT("Toon")));
 		PlatformFile.CopyDirectoryTree(*ShaderDir, *FPaths::Combine(PluginShaderOverrideDir, TEXT("Default")), true);
 	}
 }
