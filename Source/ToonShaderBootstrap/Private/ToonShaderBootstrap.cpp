@@ -3,6 +3,7 @@
 #include "ToonShaderBootstrap.h"
 #include <Interfaces/IPluginManager.h>
 #include <HAL/PlatformFilemanager.h>
+#include <Misc/MessageDialog.h>
 
 #define LOCTEXT_NAMESPACE "FToonShaderBootstrapModule"
 
@@ -28,7 +29,11 @@ void FToonShaderBootstrapModule::StartupModule()
 
 	if (bAlwaysReplaceShaderDirectory)
 	{
-		PlatformFile.CopyDirectoryTree(*ShaderDir, *FPaths::Combine(PluginShaderOverrideDir, TEXT("Override")), true);
+		const bool Succeed = PlatformFile.CopyDirectoryTree(*ShaderDir, *FPaths::Combine(PluginShaderOverrideDir, TEXT("Override")), true);
+		if (IsRunningCommandlet() == false && Succeed == false)
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("替换卡通材质失败警告", "向引擎目录[Engine/Shaders]下替换文件失败\n可能是文件访问权限问题"));
+		}
 	}
 }
 
@@ -54,8 +59,12 @@ void FToonShaderBootstrapModule::ShutdownModule()
 		const FString ShaderDir = FPaths::Combine(FPaths::EngineDir(), TEXT("Shaders"));
 		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
-		PlatformFile.DeleteDirectoryRecursively(*FPaths::Combine(ShaderDir, TEXT("Private"), TEXT("Toon")));
-		PlatformFile.CopyDirectoryTree(*ShaderDir, *FPaths::Combine(PluginShaderOverrideDir, TEXT("Default")), true);
+		bool Succeed = PlatformFile.DeleteDirectoryRecursively(*FPaths::Combine(ShaderDir, TEXT("Private"), TEXT("Toon")));
+		Succeed &= PlatformFile.CopyDirectoryTree(*ShaderDir, *FPaths::Combine(PluginShaderOverrideDir, TEXT("Default")), true);
+		if (IsRunningCommandlet() == false && Succeed == false)
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("还原默认材质失败警告", "还原引擎目录[Engine/Shaders]文件失败\n可能是文件访问权限问题"));
+		}
 	}
 }
 
