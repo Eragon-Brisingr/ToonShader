@@ -1,0 +1,50 @@
+#pragma once
+
+float3 ToonStep(float Range, float Input)
+{
+	return smoothstep(0.5 - Range, 0.5 + Range, Input);
+}
+
+FDirectLighting StylizedShadowBxDF(FGBufferData GBuffer, half3 N, half3 V, half3 L, float Falloff, float NoL, FAreaLight AreaLight, FShadowTerms Shadow)
+{
+#if GBUFFER_HAS_TANGENT
+	half3 X = GBuffer.WorldTangent;
+	half3 Y = normalize(cross(N, X));
+#else
+	half3 X = 0;
+	half3 Y = 0;
+#endif
+	
+	BxDFContext Context;
+	Init(Context, N, X, Y, V, L);
+	SphereMaxNoH(Context, AreaLight.SphereSinAlpha, true);
+	Context.NoV = saturate(abs(Context.NoV) + 1e-5);
+
+	float SpecularOffset = 0.5;
+	float SpecularRange = GBuffer.CustomData.x;
+
+	float3 ShadowColor = 0;
+	
+	ShadowColor = GBuffer.DiffuseColor * ShadowColor;
+	float offset = GBuffer.CustomData.y;
+	float SoftScatterStrength = 0;
+
+	offset = offset * 2 - 1;
+	half3 H = normalize(V + L);
+	float NoH = saturate(dot(N, H));
+	NoL = (dot(N, L) + 1) / 2; // overwrite NoL to get more range out of it
+	half NoLOffset = saturate(NoL + offset);
+	
+	FDirectLighting Lighting;
+	Lighting.Diffuse = AreaLight.FalloffColor * (smoothstep(0, 1, NoLOffset) * Falloff) * Diffuse_Lambert(GBuffer.DiffuseColor) * 2.2;
+	float InScatter = pow(saturate(dot(L, -V)), 12) * lerp(3, .1f, 1);
+	float NormalContribution = saturate(dot(N, H));
+	float BackScatter = GBuffer.GBufferAO * NormalContribution / (PI * 2);
+	Lighting.Specular = ToonStep(SpecularRange, (saturate(D_GGX(SpecularOffset, NoH)))) * (AreaLight.FalloffColor * GBuffer.SpecularColor * Falloff * 8);
+	float3 TransmissionSoft = AreaLight.FalloffColor * (Falloff * lerp(BackScatter, 1, InScatter)) * ShadowColor * SoftScatterStrength;
+	float3 ShadowLightener = 0;
+	ShadowLightener = (saturate(smoothstep(0, 1, saturate(1 - NoLOffset))) * ShadowColor * 0.1);
+	
+	Lighting.Transmission = (ShadowLightener + TransmissionSoft) * Falloff;
+	return Lighting;
+}
