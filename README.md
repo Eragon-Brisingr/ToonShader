@@ -1,16 +1,27 @@
-# 插件添加ShaderModel
+# 卡通材质
+
+![最终效果](Docs/最终效果.png)
+
+## 使用方式
+
+在材质编辑器中添加**Toon Shading**节点，ShadingModel即切换为**SHADINGMODELID_STYLIZED_SHADOW**  
+注意：**添加节点后不再受编辑器中的ShadingModel变量控制**  
+
+## How to use
+
+Add **Toon Shading** node in material editor, and ShadingModel property will be replaced as toon shading model.  
+
+## 插件添加ShadingModel大致流程
 
 注意该教程在引擎版本**4.26**时作成
 
-## Hack添加ShaderModel大致流程
-
 * 继承UMaterialExpressionCustomOutput  
-    使用虚幻中**UMaterialExpressionCustomOutput**类型可在代码编译时插入**条件编译宏**的特性将自定义的ShaderModelId添加进Shader编译流程  
+    使用虚幻中**UMaterialExpressionCustomOutput**类型可在代码编译时插入**条件编译宏**的特性将自定义的ShadingModelId添加进Shader编译流程  
     插件中重写的GetFunctionName返回的**GetToonShading**在shader对应的宏为**NUM_MATERIAL_OUTPUTS_GETTOONSHADING**
 
-* 进入引擎Shader目录修改Shader文件
+* 进入引擎**Engine/Shader目录**修改和添加Shader文件
 
-* 修改**ShadingCommon.ush**中添加新的ShaderModel宏定义
+* 修改**ShadingCommon.ush**中添加新的ShadingModel宏定义
   * 添加宏**SHADINGMODELID_STYLIZED_SHADOW**，且修改**SHADINGMODELID_NUM**的数量（注意当前最多支持16个）
 
     > ```c++
@@ -76,7 +87,7 @@
   > #endif
   > ```
 
-* 修改**ShadingModels.ush**支持添加的ShaderModel的自定义BxDF函数  
+* 修改**ShadingModels.ush**支持添加的ShadingModel的自定义BxDF函数  
   **IntegrateBxDF**函数中添加**SHADINGMODELID_STYLIZED_SHADOW**的case
 
   > ```c++
@@ -121,11 +132,11 @@
   > }
   > ```
 
-* 在材质编辑器中添加**Toon Shading**节点，ShaderModel即切换为**SHADINGMODELID_STYLIZED_SHADOW**  
-  *不再受编辑器中的SaherModel*控制  
-  SpecularRange输入0，Offset输入为1，即可看到自定义材质的效果
+### 无法支持From Material Expression的原因
 
-## 插件支持ShaderModel的方式
+FMaterialShadingModelField::AddShadingModel 存在check(InShadingModel < MSM_NUM)检查导致没法Hack，导致新增的ShadingModel数量肯定超过MSM_NUM，引发断言导致编辑器crash
+
+## 插件支持ShadingModel的方式
 
 * ToonShader模块  
   该模块实现了**UMaterialExpressionCustomOutput**的子类，为运行时模块
